@@ -1,0 +1,157 @@
+#!/bin/bash
+### PicoSpeaker
+### Written by Kyle
+### A bash script that speaks its command line using SVox Pico, soundtouch and Sox
+### Speech rate, pitch, volume and language can be specified, and output can be saved to many file formats
+### This script is free and unencumbered software released into the public domain. See UNLICENSE for details.
+### SVox Pico, soundtouch and Sox are covered by their own open source licenses and copyrights,
+### and are therefore not covered by the UNLICENSE included with PicoSpeaker.
+
+# Version function variables
+NAME=PicoSpeaker
+AUTHOR=Kyle
+VERSION=0.1
+# Temporary file used by pico2wave; must be a .wav file
+TEMP=/tmp/speaker-$(whoami).wav
+# Soundtouch says it allows piping using "stdin" and "stdout," but it doesn't seem to work. Another temp file is needed
+TEMPPROCESSED=/tmp/speaker-processed-$(whoami).wav
+# "play -q" by default, but will be set to "sox" if saving to a file
+# This is the only command variable to be touched before its command line is built
+SOXCOMMAND="play -q"
+
+version () {
+	echo $NAME $VERSION
+	echo Written by $AUTHOR
+	echo This script is free and unencumbered software released into the public domain.
+	echo See the included UNLICENSE file for details.
+}
+
+usage () {
+	version
+	echo
+	echo Usage:
+	echo "$(basename $0)" [options] \<text\>
+	echo
+	echo Options:
+	echo "-l|--language <language>	Language to be spoken: (default is en-US)"
+	echo "-v|--volume <number>	Output volume: (default is 1.0)"
+	echo "-r|--rate <number>	Rate of speech from -95 to 5000: (default is 0)"
+	echo "-p|--pitch <number>	Voice pitch from -60 to 60: (default is 0)"
+	echo "-o|--output <filename>	Output to the specified file: (default is sound card output)"
+	echo "-c|--compress <number>	Compression/quality level of output file"
+	echo "	This option causes an error if no output file is specified."
+	echo "-t|--type <type>	Save output file as <type>. Use only if saving with a nonstandard extension."
+	echo "	This option causes an error if no output file is specified."
+	echo "-V|--version	Print version information"
+	echo "-h|--help|-u|--usage	Print this help message"
+}
+
+parse () {
+	# Simple command line parser
+	# Command line options and arguments are parsed as long as the first parameter is recognized
+	# The parser must run at least once, and each option/argument pair is dropped after parsing
+	# The remainder of the command line is the text to be spoken, even if the text includes a recognized option
+	# Version and usage options are special cases, and should exit immediately with no further action
+	#
+	# First, the usage info should be printed if no options are present on the command line
+	test $1 || usage
+	OPTIONS=1
+	# This loop should terminate as soon as a non-option string is encountered
+	while [ -v OPTIONS ]; do
+		case $1 in
+			-V | --version)
+				version
+				exit 0
+			;;
+			-h | --help | -u | --usage)
+				usage
+				exit 0
+			;;
+			-o | --output)
+				OUTPUT="$2"
+				SOXCOMMAND=sox
+				shift; shift
+			;;
+			-c | --compress)
+				COMPRESSION=$2
+				shift; shift
+			;;
+			-t | --type)
+				TYPE=$2
+				shift; shift
+			;;
+			-l | --language)
+				LANGUAGE=$2
+				shift; shift
+			;;
+			-v | --volume)
+				VOLUME=$2
+				shift; shift
+			;;
+			-p | --pitch)
+				PITCH=$2
+				shift; shift
+			;;
+			-r | --rate)
+				RATE=$2
+				shift; shift
+			;;
+			# The non-option string has been encountered
+			*)
+				unset OPTIONS
+			;;
+	esac
+	done
+	# Store the remaining command line as the text to be spoken
+	TEXT="$*"
+}
+
+soxbuild () {
+	# Builds the Sox command line for speech output
+	test -v VOLUME && SOXCOMMAND+=" -v $VOLUME"
+	SOXCOMMAND+=" $TEMP"
+	if [ -v OUTPUT ]; then
+		if [ -v TYPE ]; then
+			SOXCOMMAND+=" -t $TYPE"
+		fi
+		if [ -v COMPRESSION ]; then
+			SOXCOMMAND+=" -C $COMPRESSION"
+		fi
+	else
+		test -v TYPE && echo "You can't force a file type if you haven't specified an output file." && exit 1
+		test -v COMPRESSION && echo "You can't set a compression level if you haven't specified an output file." && 	exit 1
+	fi
+}
+
+tts () {
+	# Initial text to speech conversion
+	TTSCOMMAND="-w $TEMP"
+	test -v LANGUAGE && TTSCOMMAND+=" -l $LANGUAGE"
+	pico2wave $TTSCOMMAND "$TEXT"
+}
+
+soundtouch () {
+# Builds the command to process rate and pitch options using Soundtouch
+	SOUNDTOUCH="soundstretch $TEMP $TEMPPROCESSED -speech"
+	test -v RATE && SOUNDTOUCH+=" -tempo=$RATE"
+	test -v PITCH && SOUNDTOUCH+=" -pitch=$PITCH"
+	# Verbose output from external programs should be suppressed
+	$SOUNDTOUCH >& /dev/null
+	# The unprocessed file is no longer needed and can be replaced with the processed version
+	mv $TEMPPROCESSED $TEMP
+}
+
+# And now for the heavy lifting
+# Parse the command line
+parse "$@"
+# The Sox command line must be built before the text is processed in case of errors.
+soxbuild
+# Perform the text to speech conversion
+tts "$TEXT"
+# Soundtouch processing is needed only if the rate and/or pitch are to be changed
+test -v RATE -o -v PITCH && soundtouch
+# This looks a bit dirty, but Bash doesn't add the output file as expected, so OUTPUT must be retested.
+test -v OUTPUT && $SOXCOMMAND "$OUTPUT" || $SOXCOMMAND
+# Temp file cleanup; there should only be one file
+rm $TEMP
+exit 0
