@@ -3,7 +3,7 @@ Written by Kyle
 
 DESCRIPTION
 
-PicoSpeaker is a bash script that speaks its command line using SVox Pico, soundtouch and Sox. Speech rate, pitch, volume and language can be specified, and output can be saved to any file format supported by Sox.
+PicoSpeaker is a script that speaks its command line using SVox Pico, soundtouch and Sox. Speech rate, pitch, volume and language can be specified, and output can be saved to any file format supported by Sox.
 
 LICENSE INFO
 
