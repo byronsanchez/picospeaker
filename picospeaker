@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 ### PicoSpeaker
 ### Written by Kyle
 ### A small program that speaks its command line using SVox Pico, soundtouch and Sox
