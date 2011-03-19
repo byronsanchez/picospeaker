@@ -3,7 +3,7 @@ Written by Kyle
 
 DESCRIPTION
 
-PicoSpeaker is a script that speaks its command line using SVox Pico, soundtouch and Sox. Speech rate, pitch, volume and language can be specified, and output can be saved to any file format supported by Sox.
+PicoSpeaker is a program written in Python that speaks its command line using SVox Pico, soundtouch and Sox. Speech rate, pitch, volume and language can be specified, and output can be saved to any file format supported by Sox.
 
 LICENSE INFO
 
@@ -37,7 +37,7 @@ Options:
 -r|--rate <number>	Rate of speech from -95 to 5000: (default is 0)
 -p|--pitch <number>	Voice pitch from -60 to 60: (default is 0)
 -o|--output <filename>	Output to the specified file: (default is sound card output)
--c|--compress <number>	Compression/quality level of output file
+-c|--compress|-q|--quality <number>	Compression/quality level of output file, depends on output file format
 	This option causes an error if no output file is specified.
 -t|--type <type>	Save output file as <type>. Use only if saving with a nonstandard extension.
 	This option causes an error if no output file is specified.
