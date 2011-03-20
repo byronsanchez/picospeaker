@@ -13,7 +13,7 @@ from os import environ as env, rename, remove
 
 # help and version tuples
 version = (
-  'PicoSpeaker 0.5',
+  'PicoSpeaker 0.6',
   'Written by Kyle',
   'This program is free and unencumbered software released into the public domain.',
   'See the included UNLICENSE file for details.')
@@ -67,23 +67,35 @@ def parse ():
       skip = True
       continue
     elif ( argv[opt] == '-p' ) or ( argv[opt] == '--pitch' ):
-      if ( int(argv[opt+1]) in range(-60, 61) ):
-        settings['pitch'] = argv[opt+1]
-      else:
-        stderr.write('Pitch must be a whole number from -60 to 60.\n')
-        exit(1)
+      try:
+        if ( int(argv[opt+1]) in range(-60, 61) ):
+          settings['pitch'] = argv[opt+1]
+        else:
+          stderr.write('Pitch must be a whole number from -60 to 60.\n')
+          exit(1)
+      except:
+          stderr.write('Pitch must be a whole number from -60 to 60.\n')
+          exit(1)
       skip = True
       continue
     elif ( argv[opt] == '-r' ) or ( argv[opt] == '--rate' ):
-      if ( int(argv[opt+1]) in range(-95, 5001) ):
-        settings['rate'] = argv[opt+1]
-      else:
-        stderr.write('Rate must be a whole number from -95 to 5000.\n')
-        exit(1)
+      try:
+        if ( int(argv[opt+1]) in range(-95, 5001) ):
+          settings['rate'] = argv[opt+1]
+        else:
+          stderr.write('Rate must be a whole number from -95 to 5000.\n')
+          exit(1)
+      except:
+          stderr.write('Rate must be a whole number from -95 to 5000.\n')
+          exit(1)
       skip = True
       continue
     elif ( argv[opt] == '-v' ) or ( argv[opt] == '--volume' ):
-      # FIXME: add a range check similar to those used for the rate and pitch settings
+      try:
+        float(argv[opt+1])
+      except:
+        stderr.write('Volume must be a number.\n')
+        exit(1)
       settings['volume'] = argv[opt+1]
       skip = True
       continue
@@ -94,6 +106,11 @@ def parse ():
       continue
     elif ( argv[opt] == '-c' ) or ( argv[opt] == '--compress' ) \
     or ( argv[opt] == '-q' ) or ( argv[opt] == '--quality' ):
+      try:
+        float(argv[opt+1]) #must be a number
+      except:
+        stderr.write('Compression/quality level must be a number.\n')
+        exit(1)
       settings['compression'] = argv[opt+1]
       skip = True
       continue
