@@ -70,10 +70,8 @@ def parse ():
       try:
         if ( int(argv[opt+1]) in range(-60, 61) ):
           settings['pitch'] = argv[opt+1]
-        else:
-          stderr.write('Pitch must be a whole number from -60 to 60.\n')
-          exit(1)
-      except:
+        else: raise ValueError
+      except ValueError:
           stderr.write('Pitch must be a whole number from -60 to 60.\n')
           exit(1)
       skip = True
@@ -82,10 +80,8 @@ def parse ():
       try:
         if ( int(argv[opt+1]) in range(-95, 5001) ):
           settings['rate'] = argv[opt+1]
-        else:
-          stderr.write('Rate must be a whole number from -95 to 5000.\n')
-          exit(1)
-      except:
+        else: raise ValueError
+      except ValueError:
           stderr.write('Rate must be a whole number from -95 to 5000.\n')
           exit(1)
       skip = True
@@ -93,7 +89,7 @@ def parse ():
     elif ( argv[opt] == '-v' ) or ( argv[opt] == '--volume' ):
       try:
         float(argv[opt+1])
-      except:
+      except ValueError:
         stderr.write('Volume must be a number.\n')
         exit(1)
       settings['volume'] = argv[opt+1]
@@ -108,7 +104,7 @@ def parse ():
     or ( argv[opt] == '-q' ) or ( argv[opt] == '--quality' ):
       try:
         float(argv[opt+1]) #must be a number
-      except:
+      except ValueError:
         stderr.write('Compression/quality level must be a number.\n')
         exit(1)
       settings['compression'] = argv[opt+1]
