@@ -154,9 +154,16 @@ def speaker():
   call(command)
   remove(''.join(temp[:2]) + temp[-1]) #all temp files have now been removed
 
-settings = parse()
-if ( not settings.has_key('text') ):
-  settings['text'] = stdin.read()
-tts()
-if ( settings.has_key('pitch') ) or ( settings.has_key('rate') ): voiceadjust()
-speaker()
+try:
+  settings = parse()
+  if ( not settings.has_key('text') ):
+    settings['text'] = stdin.read()
+  tts()
+  if ( settings.has_key('pitch') ) or ( settings.has_key('rate') ): voiceadjust()
+  speaker()
+except KeyboardInterrupt:
+  stderr.write('Keyboard interrupt received. Cleaning up.\n')
+  try: remove(''.join(temp))
+  except OSError: pass # The file doesn't exist and therefore doesn't need to be removed
+  try: remove(''.join(temp[:2]) + temp[-1])
+  except OSError: pass # the file doesn't exist and therefore doesn't need to be removed
