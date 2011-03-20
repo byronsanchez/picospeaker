@@ -129,7 +129,10 @@ def tts():
   command = ['pico2wave', '-w', ''.join(temp[:2]) + temp[-1]]
   if ( settings.has_key('language') ): command += ['-l', settings['language']]
   command.append(settings['text'])
-  call(command)
+  try: call(command)
+  except OSError:
+    stderr.write('FIXME: text is too large.\n')
+    exit(1)
 
 def voiceadjust():
   'Changes the pitch and/or rate of the speech'
