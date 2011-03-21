@@ -3,19 +3,17 @@ Written by Kyle
 
 DESCRIPTION
 
-PicoSpeaker is a program written in Python that speaks its command line using SVox Pico, soundtouch and Sox. Speech rate, pitch, volume and language can be specified, and output can be saved to any file format supported by Sox.
+PicoSpeaker is a program written in Python that speaks text on its command line or standard input using SVox Pico and Sox. Speech rate, pitch, volume and language can be specified, and output can be saved to any file format supported by Sox.
 
 LICENSE INFO
 
-This is perhaps the only license agreement you will never have to read. PicoSpeaker is free and unencumbered software released into the public domain. See the included UNLICENSE file if you really want to. SVox Pico, soundtouch and Sox are covered by their own open source licenses and copyrights, and are therefore not covered by the UNLICENSE included with PicoSpeaker.
+This is perhaps the only license agreement you will never have to read. PicoSpeaker is free and unencumbered software released into the public domain. See the included UNLICENSE file if you really want to. SVox Pico and Sox are covered by their own open source licenses and copyrights, and are therefore not covered by the UNLICENSE included with PicoSpeaker.
 
 REQUIREMENTS
 
-PicoSpeaker uses SVox Pico to produce speech audio data, Soundtouch for rate and pitch control and Sox for output, both to the sound device and to a specified output file. These packages must be installed on your system in order to have full functionality.
+PicoSpeaker uses SVox Pico to produce speech audio data and Sox to control rate, pitch and volume and to output the speech either to the sound device or to a specified output file. These packages must be installed on your system in order to have full functionality.
 
 SVox Pico can be found on Debian and Ubuntu systems in several packages beginning with libttspico..., e.g. libttspico0, libttspico-data and libttspico-utils. On Arch Linux, search the Arch User Repository for svox-pico-git and install using the PKGBUILD. Other systems have their own names for the SVox Pico TTS engine, but not every distro has it yet. Check your package repositories for availability.
-
-Soundtouch is required by Audacity, so if you have Audacity, you most likely already have the soundstretch command needed to change the rate and pitch of the speech output. If unsure, just install the soundtouch package using your distro's package manager. If your distro generally separates source packages into component library and utility packages, be sure that you install the package that will either be called soundtouch or soundstretch. Your package manager will pull in the soundtouch library automatically.
 
 Sox is a wellknown audio processing package available on most Linux/Unix systems. If you have access to the "play" and "rec" commands, you already have Sox. If not, install the sox package using your distro's package manager.
 
@@ -34,8 +32,8 @@ picospeaker [options] <text>
 Options:
 -l|--language <language>	Language to be spoken: (default is en-US)
 -v|--volume <number>	Output volume: (default is 1.0)
--r|--rate <number>	Rate of speech from -95 to 5000: (default is 0)
--p|--pitch <number>	Voice pitch from -60 to 60: (default is 0)
+-r|--rate <number>	Rate of speech from -90 to 9900: (default is 0)
+-p|--pitch <number>	Voice pitch from -79 to 39: (default is 0)
 -o|--output <filename>	Output to the specified file: (default is sound card output)
 -c|--compress|-q|--quality <number>	Compression/quality level of output file, depends on output file format
 	This option causes an error if no output file is specified.

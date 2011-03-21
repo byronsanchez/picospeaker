@@ -1,15 +1,15 @@
 #!/usr/bin/python
 ### PicoSpeaker
 ### Written by Kyle
-### A small program that speaks its command line using SVox Pico, soundtouch and Sox
+### A small program that speaks text on its command line or standard input using SVox Pico and Sox
 ### Speech rate, pitch, volume and language can be specified, and output can be saved to many file formats
 ### This program is free and unencumbered software released into the public domain. See UNLICENSE for details.
-### SVox Pico, soundtouch and Sox are covered by their own open source licenses and copyrights,
+### SVox Pico and Sox are covered by their own open source licenses and copyrights,
 ### and are therefore not covered by the UNLICENSE included with PicoSpeaker.
 
 from sys import argv, stdin, stderr, exit
-from subprocess import call, PIPE
-from os import environ as env, rename, remove
+from subprocess import call
+from os import environ as env, remove
 
 # help and version tuples
 version = (
@@ -24,8 +24,8 @@ help = (
   'Options:',
   '-l|--language <language>	Language to speak: (default is en-US)',
   '-v|--volume <number>	Output volume: (default is 1.0)',
-  '-r|--rate <number>	Rate of speech from -95 to 5000: (default is 0)',
-  '-p|--pitch <number>	Voice pitch from -60 to 60: (default is 0)',
+  '-r|--rate <number>	Rate of speech from -90 to 9900: (default is 0)',
+  '-p|--pitch <number>	Voice pitch from -79 to 39: (default is 0)',
   '-o|--output <file>	Output to the specified file: (default is sound card output)',
   '-c|--compress|-q|--quality <number>	Compression/quality level of output file, depends on file type',
   '	This option causes an error if no output file is specified.',
@@ -34,8 +34,8 @@ help = (
   '-V|--version	Print version information',
   '-h|--help|-u|--usage	Print this help message')
 
-# Spoken text is stored in temp files named using this list
-temp = ['/tmp/picospeaker-', env['USER'], '-processed', '.wav']
+# Spoken text is stored in this temp file; unfortunately, pico2wave doesn't pipe
+temp = '/tmp/picospeaker-' + env['USER'] + '.wav'
 
 def parse ():
   'Parse the command line and return settings and text to be spoken in a dictionary object'
@@ -68,21 +68,21 @@ def parse ():
       continue
     elif ( argv[opt] == '-p' ) or ( argv[opt] == '--pitch' ):
       try:
-        if ( int(argv[opt+1]) in range(-60, 61) ):
+        if ( int(argv[opt+1]) in range(-79, 40) ):
           settings['pitch'] = argv[opt+1]
         else: raise ValueError
       except ValueError:
-          stderr.write('Pitch must be a whole number from -60 to 60.\n')
+          stderr.write('Pitch must be a whole number from -79 to 39.\n')
           exit(1)
       skip = True
       continue
     elif ( argv[opt] == '-r' ) or ( argv[opt] == '--rate' ):
       try:
-        if ( int(argv[opt+1]) in range(-95, 5001) ):
+        if ( int(argv[opt+1]) in range(-90, 9901) ):
           settings['rate'] = argv[opt+1]
         else: raise ValueError
       except ValueError:
-          stderr.write('Rate must be a whole number from -95 to 5000.\n')
+          stderr.write('Rate must be a whole number from -90 to 9900.\n')
           exit(1)
       skip = True
       continue
@@ -126,47 +126,38 @@ def parse ():
 
 def tts():
   'convert text to speech data and store it in a temporary file using the pico2wave utility from SVox Pico'
-  command = ['pico2wave', '-w', ''.join(temp[:2]) + temp[-1]]
+  command = ['pico2wave', '-w', temp]
   if ( settings.has_key('language') ): command += ['-l', settings['language']]
   command.append(settings['text'])
-  try: call(command)
+  try:
+    call(command)
   except OSError:
     stderr.write('FIXME: text is too large.\n')
     exit(1)
-
-def voiceadjust():
-  'Changes the pitch and/or rate of the speech'
-  command = ['soundstretch', ''.join(temp[:2]) + temp[-1], ''.join(temp), '-speech']
-  if ( settings.has_key('pitch') ): command.append('-pitch=' + settings['pitch'])
-  if ( settings.has_key('rate') ): command.append('-tempo=' + settings['rate'])
-  call(command, stderr=PIPE) #PIPE suppresses verbose output; it isn't blocking, so hopefully not a problem
-  rename(''.join(temp), ''.join(temp[:2]) + temp[-1]) #effectively replaces the unprocessed speech with the processed speech
 
 def speaker():
   'speaks the text, or saves it if an output file was specified on the command line'
   command = ['play', '-q']
   if ( settings.has_key('volume') ): command += ['-v', settings['volume']]
-  command.append(''.join(temp[:2]) + temp[-1])
+  command.append(temp)
   if ( settings.has_key('output') ):
     command[0] = 'sox'
     del command[1]
     if ( settings.has_key('filetype') ): command += ['-t', settings['filetype']]
     if ( settings.has_key('compression') ): command += ['-C', settings['compression']]
     command.append(settings['output'])
-    print 'Saving speech to ' + settings['output'] + '.'
+  if ( settings.has_key('pitch') ): command += ['gain', '-0.15', 'pitch', str(float(settings['pitch'])*100)]
+  if ( settings.has_key('rate') ): command += ['gain', '-0.1', 'tempo', '-s', str(1+float(settings['rate'])/100)]
   call(command)
-  remove(''.join(temp[:2]) + temp[-1]) #all temp files have now been removed
+  remove(temp)
 
 try:
   settings = parse()
   if ( not settings.has_key('text') ):
     settings['text'] = stdin.read()
   tts()
-  if ( settings.has_key('pitch') ) or ( settings.has_key('rate') ): voiceadjust()
   speaker()
 except KeyboardInterrupt:
   stderr.write('Keyboard interrupt received. Cleaning up.\n')
-  try: remove(''.join(temp))
+  try: remove(temp)
   except OSError: pass # The file doesn't exist and therefore doesn't need to be removed
-  try: remove(''.join(temp[:2]) + temp[-1])
-  except OSError: pass # the file doesn't exist and therefore doesn't need to be removed
