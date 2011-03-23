@@ -13,7 +13,7 @@ from os import environ as env, remove
 
 # help and version tuples
 version = (
-  'PicoSpeaker 0.6',
+  'PicoSpeaker 0.6.1',
   'Written by Kyle',
   'This program is free and unencumbered software released into the public domain.',
   'See the included UNLICENSE file for details.')
