@@ -128,7 +128,7 @@ def tts():
   'convert text to speech data and store it in a temporary file using the pico2wave utility from SVox Pico'
   command = ['pico2wave', '-w', temp]
   if ( settings.has_key('language') ): command += ['-l', settings['language']]
-  command.append(settings['text'])
+  command += ['--', settings['text']]
   try:
     call(command)
   except OSError:
