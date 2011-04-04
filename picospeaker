@@ -9,11 +9,11 @@
 
 from sys import argv, stdin, stderr, exit
 from subprocess import call
-from os import environ as env, remove
+from os import environ as env, getpid, remove
 
 # help and version tuples
 version = (
-  'PicoSpeaker 0.6.1',
+  'PicoSpeaker 0.6.2',
   'Written by Kyle',
   'This program is free and unencumbered software released into the public domain.',
   'See the included UNLICENSE file for details.')
@@ -35,7 +35,7 @@ help = (
   '-h|--help|-u|--usage	Print this help message')
 
 # Spoken text is stored in this temp file; unfortunately, pico2wave doesn't pipe
-temp = '/tmp/picospeaker-' + env['USER'] + '.wav'
+temp = '/tmp/picospeaker-' + env['USER'] + '-' + str(getpid()) + '.wav'
 
 def parse ():
   'Parse the command line and return settings and text to be spoken in a dictionary object'
