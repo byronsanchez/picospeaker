@@ -8,8 +8,9 @@
 ### and are therefore not covered by the UNLICENSE included with PicoSpeaker.
 
 from sys import argv, stdin, stderr, exit
-from subprocess import call
-from os import environ as env, getpid, remove
+from subprocess import call, Popen
+from os import environ as env, remove
+from time import sleep
 
 # help and version tuples
 version = (
@@ -35,7 +36,7 @@ help = (
   '-h|--help|-u|--usage	Print this help message')
 
 # Spoken text is stored in this temp file; unfortunately, pico2wave doesn't pipe
-temp = '/tmp/picospeaker-' + env['USER'] + '-' + str(getpid()) + '.wav'
+temp = '/tmp/picospeaker-' + env['USER'] + '.wav'
 
 def parse ():
   'Parse the command line and return settings and text to be spoken in a dictionary object'
@@ -148,8 +149,11 @@ def speaker():
     command.append(settings['output'])
   if ( settings.has_key('pitch') ): command += ['gain', '-0.15', 'pitch', str(float(settings['pitch'])*100)]
   if ( settings.has_key('rate') ): command += ['gain', '-0.1', 'tempo', '-s', str(1+float(settings['rate'])/100)]
-  call(command)
+  speak = Popen(command)
+  sleep(0.1) # the temp file should be open by now
+  # The temp file can be removed as soon as it is opened in case PicoSpeaker is killed while speaking
   remove(temp)
+  speak.wait() # Don't leave this function until the command is completed
 
 try:
   settings = parse()
